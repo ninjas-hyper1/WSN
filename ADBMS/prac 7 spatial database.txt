@@ -1,0 +1,168 @@
+1.
+connect
+system
+ckt
+
+2. Creating Table:
+
+CREATE TABLE university_15 (
+    mkt_id NUMBER PRIMARY KEY,
+    name   VARCHAR2(32),
+    shape  MDSYS.SDO_GEOMETRY
+);
+
+
+3. Inserting values in the tables:
+
+INSERT INTO university_15 VALUES (
+    1,
+    'abc',
+    MDSYS.SDO_GEOMETRY(
+        2003,                     
+        NULL,
+        NULL,
+        MDSYS.SDO_ELEM_INFO_ARRAY(1, 1003, 3),  
+        MDSYS.SDO_ORDINATE_ARRAY(1, 1, 5, 7)
+    )
+);
+
+**************************************************
+ if already exist then (DELETE FROM university_15
+WHERE mkt_id = 1;
+)
+*****************************************************
+
+4. /*****inserting into table ******/
+
+INSERT INTO university_15 VALUES (
+    2,
+    'pqr',
+    MDSYS.SDO_GEOMETRY(
+        2003,                    
+        NULL,
+        NULL,
+        MDSYS.SDO_ELEM_INFO_ARRAY(1, 1003, 1), 
+        MDSYS.SDO_ORDINATE_ARRAY(5, 1,
+                                 8, 1,
+                                 8, 6,
+                                 5, 7,
+                                 5, 1)
+    )
+);
+
+5. /*****inserting into table ******/
+
+INSERT INTO university_15 VALUES (
+    3,
+    'mno',
+    MDSYS.SDO_GEOMETRY(
+        2003,                      -- 2-dimensional polygon
+        NULL,
+        NULL,
+        MDSYS.SDO_ELEM_INFO_ARRAY(1, 1003, 1),
+        -- one polygon (exterior polygon ring)
+        MDSYS.SDO_ORDINATE_ARRAY(
+            3, 3,
+            6, 3,
+            6, 5,
+            4, 5,
+            3, 3
+        )
+    )
+);
+
+6.  /*****inserting into table ******/
+INSERT INTO university_15 VALUES (
+    4,
+    'xyz',
+    MDSYS.SDO_GEOMETRY(
+        2003,                           -- 2-dimensional polygon
+        NULL,
+        NULL,
+        MDSYS.SDO_ELEM_INFO_ARRAY(1, 1003, 4),   -- one circle
+        MDSYS.SDO_ORDINATE_ARRAY(
+            8, 7,
+            10, 9,
+            8, 11
+        )
+    )
+);
+
+7. /*****inserting into table ******/
+
+INSERT INTO user_sdo_geom_metadata VALUES (
+    'university_15',
+    'shape',
+    MDSYS.SDO_DIM_ARRAY(
+        MDSYS.SDO_DIM_ELEMENT('x', 0, 20, 0.005),
+        MDSYS.SDO_DIM_ELEMENT('y', 0, 20, 0.005)
+    ),
+    NULL   -- srid
+);
+
+
+8. Creating index:
+
+create index university_spatial_idx
+on university_15(shape)
+indextype is mdsys.spatial_index;
+
+9. Firing queries on the created tables:
+******/ 1) Find the topological intersection of two geometries.******
+
+select sdo_geom.sdo_intersection(c_a.shape, c_c.shape, 0.005)
+from university_15 c_a, university_15 c_c
+where c_a.name = 'abc' and c_c.name = 'mno';
+
+10. Find whether two geometric figures are equivalent to each other.
+
+SELECT SDO_GEOM.RELATE(
+         c_b.shape,
+         'anyinteract',
+         c_d.shape,
+         0.005
+       )
+FROM university_15 c_b,
+     university_15 c_d
+WHERE c_b.name = 'pqr'
+  AND c_d.name = 'xyz';
+
+11. 
+
+SELECT SDO_GEOM.RELATE(
+         c_b.shape,
+         'anyinteract',
+         c_a.shape,
+         0.005
+       )
+FROM university_15 c_b,
+     university_15 c_a
+WHERE c_b.name = 'pqr'
+  AND c_a.name = 'abc';
+
+12. Find the areas of all direction locations.
+
+SELECT name,
+       SDO_GEOM.SDO_AREA(shape, 0.005)
+FROM university_15;
+
+
+13. Find the area of only one location abc.
+
+SELECT c.name,
+       SDO_GEOM.SDO_AREA(c.shape, 0.005)
+FROM university_15 c
+WHERE c.name = 'abc';
+
+14. Find the distance between two geometries.
+
+SELECT SDO_GEOM.SDO_DISTANCE(
+         c_b.shape,
+         c_d.shape,
+         0.005
+       )
+FROM university_15 c_b,
+     university_15 c_d
+WHERE c_b.name = 'pqr'
+  AND c_d.name = 'xyz';
+

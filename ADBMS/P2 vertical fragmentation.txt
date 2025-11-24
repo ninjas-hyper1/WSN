@@ -1,0 +1,137 @@
+# practical no.2 vertical fragmentation
+
+
+**#connect to the oracle**
+connect
+system
+ckt
+
+
+**#create user scott and give all the permission**
+
+create user scott identified by ckt;
+
+grant create session to scott;
+
+grant resource to scott;
+
+
+**#create user mscit and give all the permission**
+
+create user mscit identified by ckt;
+
+grant create session to mscit;
+
+grant resource to mscit;
+
+
+**#connecting as scott User**
+
+connect
+
+scott
+
+ckt
+
+
+**#creating emp1 at node1**
+
+create table emp1( eno number(5), ename varchar2(20), address varchar2(30));
+
+
+**#inserting values into the table**
+
+INSERT INTO emp1 VALUES (1, 'vidya', 'airoli');
+INSERT INTO emp1 VALUES (2, 'deepshikha', 'sion');
+INSERT INTO emp1 VALUES (3, 'bini', 'powai');
+INSERT INTO emp1 VALUES (4, 'pavan', 'thane');
+INSERT INTO emp1 VALUES (5, 'anil', 'mysore');
+
+
+**#display table**
+
+show user;
+
+select * from emp1;
+
+
+**#connecting as mscit User**
+
+connect
+
+mscit
+
+ckt
+
+
+**#creating emp1 at node2**
+
+create table emp2( eno number(5), email varchar2(20), salary number(8));
+
+
+**#inserting values into the table**
+
+INSERT INTO emp2 VALUES (1, 'vidya@gmail.com', 11000);
+INSERT INTO emp2 VALUES (2, 'deepshikha@yahoo.com', 5500);
+INSERT INTO emp2 VALUES (3, 'bini@gmail.com', 5100);
+INSERT INTO emp2 VALUES (4, 'pavan@yahoo.com', 4500);
+INSERT INTO emp2 VALUES (5, 'anil@yahoo.com', 3000);
+
+
+
+**#display table**
+
+show user;
+
+select * from emp2;
+
+
+**#connecting as System User**
+
+connect
+
+system
+
+ckt
+
+
+**#creating public database links at the central machine**
+
+create public database link emp_link1 connect to scott identified by ckt using 'XE';
+create public database link emp_link2 connect to mscit identified by ckt using 'XE';
+
+
+**#retrieving the records from emp_link1 and emp_link2**
+
+select emp1.eno@emp_link1,ename,address,email,salary from
+emp1@emp_link1,emp2@emp_link2 where emp1.eno@emp_link1 =
+emp2.eno@emp_link2;
+
+
+
+**#to find the salary of an employee where employee number is known**
+
+select emp1.eno@emp_link1,ename,salary from
+emp1@emp_link1,emp2@emp_link2 where emp1.eno@emp_link1 =
+emp2.eno@emp_link2 and emp2.eno@emp_link2 = 1;
+
+
+**#to find the email where the employee name is known**
+
+select emp1.eno@emp_link1,emp2.email@ emp_link2 from
+emp1@emp_link1,emp2@emp_link2 where emp1.ename@emp_link1 =
+'pavan' and emp1.eno@emp_link1 = emp2.eno@emp_link2;
+
+
+**#to find the employee name and email where employee number is known**
+
+select emp1.eno@emp_link1,ename,email from
+emp1@emp_link1,emp2@emp_link2 where emp1.eno@emp_link1 = 2 and
+emp1.eno@emp_link1 = emp2.eno@emp_link2;
+
+
+**#to find employee name whose salary is > 5000**
+
+select emp1.ename@emp_link1,emp2.salary@emp_link2 from
+emp1@emp_link1,emp2@emp_link2 where emp2.salary@emp_link2 > 5000
+and emp1.eno@emp_link1 = emp2.eno@emp_link2;

@@ -1,0 +1,97 @@
+1.
+
+connect
+system
+ckt
+
+2.Table Definition:
+
+CREATE TABLE EMP_ANT
+(
+ACC_NO NUMBER(10),
+ANAME VARCHAR2(20),
+JOIN_DATE DATE,
+RETIRE_DATE DATE
+);
+
+3. Insertion of different values in the tables.
+
+INSERT INTO EMP_ANT VALUES (1, 'AJITI',    '02-MAR-2001', '21-MAR-2004');
+INSERT INTO EMP_ANT VALUES (2, 'MUKESH',   '04-APR-1999', '10-MAY-2005');
+INSERT INTO EMP_ANT VALUES (3, 'SANJAY',   '01-DEC-1998', '10-JUN-2002');
+INSERT INTO EMP_ANT VALUES (4, 'PARAG',    '15-MAY-2000', '02-MAR-2001');
+INSERT INTO EMP_ANT VALUES (5, 'SIDDHESH', '10-AUG-1995', '09-AUG-2005');
+INSERT INTO EMP_ANT VALUES (6, 'YATIN',  '02-MAR-2001', '20-MAR-2005');
+INSERT INTO EMP_ANT VALUES (7, 'KAVITA', '12-SEP-2000', '02-MAR-2001');
+
+
+4. Display Table
+
+SELECT * FROM EMP_ANT;
+
+5. Firing queries on the created tables
+
+SELECT * FROM EMP_ANT WHERE JOIN_DATE = '02-MAR-2001' ;
+
+6. Find the employees who have retirement date 02-MAR-2001
+
+SELECT *FROM EMP_ANT WHERE RETIRE_DATE = '02-MAR-2001';
+
+
+******************************************************************
+Question: Create a table tbl_shares, which stores the, name of company, number of
+shares, and price per share at transaction time. Insert records and fire the
+following queries.
+a) Find all the names of a company whose share price is more than Rs.100 at
+11:45 A.M.
+b) Find the name of company which has highest shares price at 5.00 P.M.
+************************************************************************
+
+1. Table definition :
+
+CREATE TABLE TBL_SHARES
+(
+CNAME VARCHAR2(20),
+NOFSHARES NUMBER(5),
+PRICEPSHARE NUMBER(5),
+TRANSTIME TIMESTAMP(6)
+);
+
+2. Insertion of different values in the tables
+
+INSERT INTO TBL_SHARES VALUES ('SAIL',     250, 25, SYSTIMESTAMP);
+
+INSERT INTO TBL_SHARES VALUES ('TATATELE', 205, 20,
+  TO_TIMESTAMP('05-JUN-2004 11.45.00.000000 AM','DD-MON-YYYY HH.MI.SS.FF AM'));
+
+INSERT INTO TBL_SHARES VALUES ('WIPRO',    250, 25,
+  TO_TIMESTAMP('10-MAR-2003 06.15.00.000000 PM','DD-MON-YYYY HH.MI.SS.FF PM'));
+
+INSERT INTO TBL_SHARES VALUES ('INFOSYS',  115, 15,
+  TO_TIMESTAMP('08-MAY-2001 07.25.00.000000 AM','DD-MON-YYYY HH.MI.SS.FF AM'));
+
+INSERT INTO TBL_SHARES VALUES ('BHARTI',   140, 12,
+  TO_TIMESTAMP('14-APR-2005 05.30.00.000000 PM','DD-MON-YYYY HH.MI.SS.FF PM'));
+
+INSERT INTO TBL_SHARES VALUES ('TAJHOTEL', 310, 30,
+  TO_TIMESTAMP('12-SEP-2003 10.30.00.000000 AM','DD-MON-YYYY HH.MI.SS.FF AM'));
+
+INSERT INTO TBL_SHARES VALUES ('MARUTI',   100, 250,
+  TO_TIMESTAMP('21-AUG-2004 05.30.00.000000 PM','DD-MON-YYYY HH.MI.SS.FF PM'));
+
+3. Display Table
+
+SELECT * FROM TBL_SHARES;
+
+4. a) Find all the names of a company whose share price is more than Rs.100 at 11:45
+A.M.
+
+SELECT CNAME FROM TBL_SHARES
+WHERE PRICEPSHARE > 15
+AND TO_CHAR(TRANSTIME,'HH12:MI:AM')='11:45:AM';
+
+5. Find the name of company which has highest shares price at 5.30 P.M.
+
+SELECT CNAME FROM TBL_SHARES WHERE PRICEPSHARE IN
+( SELECT MAX(PRICEPSHARE) FROM TBL_SHARES
+WHERE TO_CHAR(TRANSTIME,'HH12:MI:AM')='05:30:PM');

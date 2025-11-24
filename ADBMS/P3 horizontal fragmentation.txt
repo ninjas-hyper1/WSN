@@ -1,0 +1,113 @@
+practical no.3 horizontal fragmentation
+
+
+#connect to the oracle
+connect
+system
+ckt
+
+
+#create user scott and give all the permission
+create user scott identified by ckt;
+grant create session to scott;
+grant resource to scott;
+
+
+#create user mscit and give all the permission
+create user mscit identified by ckt;
+grant create session to mscit;
+grant resource to mscit;
+
+
+#connecting as scott User
+
+connect 
+scott
+ckt 
+
+
+#creating emp1 at node1
+create table emp1( eno number(6), ename varchar2(15), address varchar2(20), email varchar2(15), salary number(6));
+
+
+#inserting values into the table
+
+INSERT INTO emp1 VALUES (1001, 'Suhas',  'Pune',  'suhas@gmail.com', 10000);
+INSERT INTO emp1 VALUES (1002, 'Rajesh', 'Thane', 'raj@gmail.com',   20000);
+INSERT INTO emp1 VALUES (1004, 'Mahesh', 'Nashik','mm@yahoo.com',     3000);
+INSERT INTO emp1 VALUES (1006, 'Prakash', 'Nagpur', 'pk@rediff.com', 5000);
+INSERT INTO emp1 VALUES (1008, 'Rahul',   'Pune',   'rahul@dot.com', 6000);
+
+
+
+#show table
+select * from emp1;
+
+
+#connecting as mscit User
+connect
+mscit
+ckt
+
+
+#creating emp2 at node2
+create table emp2(eno number(6), ename varchar2(15), address varchar2(20), email varchar2(15), salary number(6));
+
+
+#inserting values into the table
+
+INSERT INTO emp2 VALUES (1003, 'Shiva',  'Banglore', 'ss@hotmail.com', 4000);
+INSERT INTO emp2 VALUES (1005, 'Sita',   'Delhi',    'sita@yahoo.com', 7000);
+INSERT INTO emp2 VALUES (1007, 'Ramesh', 'Kerala',   'r_sh@yahoo.com', 3000);
+INSERT INTO emp2 VALUES (1009, 'Rakesh', 'Pune',     'rak@yahoo.com',  2000);
+INSERT INTO emp2 VALUES (1010, 'Sudha',  'Nashik',   'sudha@yahoo.com',6000);
+
+
+
+#show table
+select * from emp2;
+
+
+#connecting as System User
+connect
+system
+ckt
+
+
+#creating public database links at the central machine
+(If already existing - drop public database link emp_link1;)
+create public database link emp_link1 connect to scott identified by ckt using 'XE';
+create public database link emp_link2 connect to mscit identified by ckt using 'XE';
+
+
+#retrieving the records from emp_link1
+select * from emp1@emp_link1;
+
+
+#Retrieving the records from emp_link2:
+select * from emp2@emp_link2;
+
+
+# A) To Find the salary of all employees.
+select distinct eno, Salary from emp1@emp_link1 union select distinct eno, Salary from emp2@emp_link2;
+
+
+# B) To Find the Email of all employees where salary > 5,000:
+select distinct eno, email from emp1@emp_link1 where salary > 5000
+union
+select distinct eno, email from emp2@emp_link2 where salary > 5000
+;
+
+
+# C) To Find the employee name and Email where employee number is
+known.
+select distinct eno, email from emp1@emp_link1 where eno=1008
+union
+select distinct eno, email from emp2@emp_link2 where eno=1008
+;
+
+
+# D) To Find the employee name and address where employee number is
+known:
+select distinct ename, address from emp1@emp_link1 where eno=1010
+union select distinct ename, address from emp2@emp_link2 where eno=1010 ;

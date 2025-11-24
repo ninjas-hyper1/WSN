@@ -1,0 +1,214 @@
+practical no.5
+object oriented databases
+
+Question: Using Object Oriented databases create the following types:
+
+a) AddrType1 (Pincode: number, Street: char, City: char, State: char, No:
+number)
+b) BranchType (address: AddrType1, phone1: integer, phone2: integer)
+c) AuthorType (name: char, addr AddrType1)
+d) PublisherType (name: char, addr: AddrType1, branches:
+BranchTableType)
+e) AuthorListType as varray, which is reference to AuthorType
+Next create the following tables:
+f) BranchTableType of BranchType
+g) authors of AuthorType
+h) books (title: varchar, year: date, published_by ref PublisherType, authors
+AuthorListType)
+i) Publishers of PublisherType
+Insert 10 records into the above tables and fire the following queries:
+a) List all the authors that have the same pin code as their publisher.
+b) List all books that have 2 or more authors.
+c) List the name of the publisher that has the most branches.
+d) Name of authors who have not published more than a book.
+e) List all the authors who have published more than one book.
+f) List all books (title) where the same author appears more than once on
+the list of authors (assuming that an integrity constraint requiring that the
+name of an author is unique in a list of authors has not been specified).
+
+
+# connect to oracle
+connect
+system
+ckt
+
+
+# 1. Create different Types and Tables
+CREATE OR REPLACE TYPE AddrType1 AS OBJECT (
+    Pincode NUMBER(5),
+    Street  CHAR(20),
+    City    VARCHAR2(50),
+    State   VARCHAR2(40),
+    No      NUMBER(4)
+);
+/
+
+
+CREATE OR REPLACE TYPE BranchType AS OBJECT (
+    address AddrType1,
+    phone1  INTEGER,
+    phone2  INTEGER
+);
+/
+
+
+CREATE OR REPLACE TYPE BranchTableType AS TABLE OF BranchType;
+/
+
+CREATE OR REPLACE TYPE AuthorType AS OBJECT (
+    name VARCHAR2(50),
+    addr AddrType1
+);
+/
+
+create table authors of AuthorType;
+
+create or replace type AuthorListType as varray(10) of ref AuthorType
+/
+
+CREATE OR REPLACE TYPE PublisherType AS OBJECT (
+    name     VARCHAR2(50),
+    addr     AddrType1,
+    branches BranchTableType
+);
+/
+
+create table Publishers of PublisherType NESTED TABLE branches
+STORE as branchtable;
+
+CREATE TABLE books (
+    title         VARCHAR2(50),
+    year          DATE,
+    published_by  REF PublisherType,
+    authors       AuthorListType
+);
+
+
+
+# 2. Insertion of different values in the tables
+
+Table Name1: Authors
+Format: Authors(name, addr:<pincode,street,city,state,no>)
+/*Here addr is the name of an object-valued attribute, which has 5 components.*/
+
+INSERT INTO Authors VALUES ('Rabiner',      AddrType1(5002, 'sstreet', 'pune',   'mha', 4));
+INSERT INTO Authors VALUES ('Rabiner',      AddrType1(7007, 'sstreet', 'mumbai', 'mha', 1007));
+INSERT INTO Authors VALUES ('Schiller',     AddrType1(7008, 'nstreet', 'nasik',  'mha', 8));
+INSERT INTO Authors VALUES ('Jerry',        AddrType1(7003, 'dstreet', 'mumbai', 'mha', 1003));
+INSERT INTO Authors VALUES ('Paulraj',      AddrType1(7008, 'sstreet', 'mumbai', 'mha', 1007));
+INSERT INTO Authors VALUES ('Elmasri',      AddrType1(7006, 'nstreet', 'mumbai', 'mha', 1006));
+INSERT INTO Authors VALUES ('Ramakrishnan', AddrType1(8002, 'dstreet', 'pune',   'mha', 1003));
+INSERT INTO Authors VALUES ('Jerry',        AddrType1(8003, 'dstreet', 'pune',   'mha', 1003));
+
+
+Table name2: Publishers
+Format: Publishers(name,addr:<pincode,street,city,state,no>,
+branches:setof<address:<pincode,street,city,state,no>,phone1,phone2>)
+/*where addr is an object-valued attribute. Branches is a complex-valued
+attribute, in this case a nested table where each element in the table has 3 parts:
+an address and two phones*/
+
+INSERT INTO Publishers VALUES ('Pearson',
+  AddrType1(4002,'rstreet','mumbai','mha',3),
+  BranchTableType(BranchType(AddrType1(5002,'fstreet','mumbai','mha',3),23406,69896)));
+
+INSERT INTO Publishers VALUES ('ekta',
+  AddrType1(7007,'sstreet','mumbai','mha',1007),
+  BranchTableType(BranchType(AddrType1(7007,'sstreet','mumbai','mha',1007),4543545,8676775)));
+
+INSERT INTO Publishers VALUES ('joshi',
+  AddrType1(7008,'sstreet','mumbai','mha',1007),
+  BranchTableType(BranchType(AddrType1(1002,'sstreet','nasik','mha',1007),456767,7675757)));
+
+INSERT INTO Publishers VALUES ('ekta',
+  AddrType1(7002,'sstreet','pune','mha',1007),
+  BranchTableType(BranchType(AddrType1(1002,'sstreet','pune','mha',1007),4543545,8676775)));
+
+INSERT INTO Publishers VALUES ('wiley',
+  AddrType1(6002,'sstreet','nasik','mha',1007),
+  BranchTableType(BranchType(AddrType1(6002,'sstreet','nasik','mha',1007),4543545,8676775)));
+
+
+
+
+Table Name3: books
+Format: Books(title,year,published_by: ref<Publishers>, authors:list of refAuthor)
+/*Where published_by is a reference to elements of the table Publishers; authors is a complex-valued attribute, in this case a list of references to objects of the type author(managed by table ‘Author’.*/
+
+INSERT INTO books
+SELECT 'DSP',TO_DATE('28-MAY-1983','DD-MON-YYYY'),REF(pub),AuthorListType(REF(aut))
+FROM Publishers pub, Authors aut
+WHERE pub.name='joshi' AND aut.name='Elmasri';
+
+INSERT INTO books
+SELECT 'compiler',TO_DATE('09-JAN-1890','DD-MON-YYYY'),REF(pub),AuthorListType(REF(aut))
+FROM Publishers pub, Authors aut
+WHERE pub.name='wiley' AND aut.name='Jerry';
+
+INSERT INTO books
+SELECT 'c',TO_DATE('25-MAY-1983','DD-MON-YYYY'),REF(pub),AuthorListType(REF(aut))
+FROM Publishers pub, Authors aut
+WHERE pub.name='Pearson' AND aut.name='Rabiner';
+
+
+
+# firing queries on the created tables
+
+a) List all of the authors that have the same pin code as their publisher:
+
+select a.name
+from authors a, publishers p
+where a.addr.pincode = p.addr.pincode;
+
+b) List all books that have 2 or more authors:
+
+SELECT *
+FROM books b
+WHERE 1 < (
+    SELECT COUNT(*)
+    FROM TABLE(b.authors)
+);
+
+c) List the name of the publisher that has the most branches:
+
+select p.name
+from publishers p, table(p.branches)
+group by p.name having count(*)> =
+all (select count(*)
+from publishers p, table(p.branches)
+group by name);
+
+d) Name of authors who have not published a book:
+
+select a.name
+from authors a
+where not exists(
+select b.title
+from books b, table(select authors
+from books b1
+where b.title = b1.title) a2
+where a.name = name);
+
+OR
+
+select a.name
+from authors a
+where not exists( select b.title
+from books b, table(b.authors)
+where a.name = name); 
+
+e) List all authors who have published more than one book:
+
+select a.name
+from authors a, books b, table(b.authors) v
+where v.column_value = ref(a)
+group by a.name having count(*) > 1;
+
+f) List all books (title) where the same author appears more than once on
+the list of authors (assuming that an integrity constraint requiring that the
+name of an author is unique in a list of authors has not been specified).
+
+select title
+from authors a, books b, table(b.authors) v
+where v.column_value = ref(a)
+group by title having count(*) > 1;

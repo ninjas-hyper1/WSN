@@ -1,0 +1,104 @@
+practical no.4
+creating replica of database 
+
+Create a global conceptual schema emp(eno,ename,address,email,salary)and insert 10
+records. Store the replication of emp in two different nodes and fire the following
+queries:
+1. Find the salary of all employees.
+2. Find the email of all employees where salary=15000.
+3. Find the employee name and email where employee number is known.
+4. Find the employee name and address where employee number is known.
+
+
+# Create table Emp
+create table Emp ( Eno number(3), Ename varchar2(20), Address varchar2(30),
+Email varchar(20), Salary number );
+
+
+# Create table Emp2
+create table Emp2 ( Eno number(3), Ename varchar2(20), Address
+varchar2(30), Email varchar(20), Salary number );
+
+
+# Creating the Database Links:
+CREATE DATABASE LINK "LINK1" USING 'XE';
+CREATE DATABASE LINK "LINK2" USING 'XE';
+
+
+# Creating Triggers :
+create or replace Trigger insert_data
+after insert on Emp
+for each row
+begin
+insert into Emp2@LINK2
+values (:new.Eno,:new.Ename,:new.Address,:new.Email,:new.Salary);
+end;
+/
+
+create or replace Trigger del_data
+before delete on Emp
+for each row
+begin
+delete from Emp2@LINK2
+where Eno=:old.Eno;
+end;
+/
+
+create or replace Trigger update_data
+after update on Emp
+for each row
+begin
+update Emp2@LINK2
+set Eno =:new.Eno,
+Ename =:new.Ename,
+Address = :new.Address,
+Email=:new.Email,
+Salary=:new.Salary
+where Eno=:old.Eno;
+end;
+/
+
+
+# Inserting Data into EMP table:
+
+INSERT INTO Emp VALUES (111, 'Shweta',   'Goregaon',   'shweta@yahoo.com',   100000);
+INSERT INTO Emp VALUES (112, 'Sweha',    'Goregaon',   'sweha@yahoo.com',     10400);
+INSERT INTO Emp VALUES (113, 'Lata',     'Virar',      'lata@yahoo.com',     100000);
+INSERT INTO Emp VALUES (114, 'Sheejal',  'Goregaon',   'sheejal@yahoo.com',   15000);
+INSERT INTO Emp VALUES (115, 'Shalmali', 'Jogeshwari', 'shalmali@yahoo.com',   5000);
+INSERT INTO Emp VALUES (116, 'Meghna',   'Borivali',   'meghna@yahoo.com',   100000);
+INSERT INTO Emp VALUES (117, 'Swati',    'Andheri',    'swati@yahoo.com',     15000);
+INSERT INTO Emp VALUES (118, 'Reena',    'Kandivali',  'reena@yahoo.com',    300000);
+INSERT INTO Emp VALUES (119, 'Niyati',   'Malad',      'niyati@yahoo.com',     15000);
+INSERT INTO Emp VALUES (120, 'Ekta',     'Kandivali',  'ekta@yahoo.com',       20000);
+
+
+
+# A) Select statement from the Master and the Replicated table:
+select * from EMP@LINK1;
+select * from EMP2@LINK2;
+
+
+# B) Query to find the Salary of all Employees from the Master and
+Replicated Table:
+select salary from EMP@LINK1;
+select salary from EMP2@LINK2;
+
+
+# C) Select Statement to display the email of employees with salary 15000,
+on the master and the replicated table:
+select email from EMP@LINK1 where salary = 15000;
+select email from EMP2@LINK2 where salary = 15000;
+
+
+# D) Select statement to list the employee name and Email where employee
+number is known from the replicated and master table:
+select ename, email from EMP@LINK1 where eno = 120 and ename = 'Ekta';
+select ename, email from EMP2@LINK2 where eno = 120 and ename = 'Ekta';
+
+
+# E) Select statement to list the employee name and address where employee
+number is known from the replicated and master table:
+select ename, address from EMP@LINK1 where eno = 111;
+select ename, address from EMP2@LINK2 where eno = 111;
+select ename, email from EMP2@LINK2 where eno = 111;
