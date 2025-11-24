@@ -1,0 +1,44 @@
+Open CMD
+
+commands:
+1.
+ping www.google.com
+ping /?
+ping -4 www.google.com
+
+2.
+ipconfig
+
+3.
+hostname
+
+4.
+getmac
+
+5.
+arp -a
+
+6.
+nslookup www.google.com
+
+7.
+nbstat
+
+8.
+nbstat -n
+
+9.
+netstat
+
+10.
+net 
+net user
+
+11.
+taskkill /IM notepad.exe /F
+
+12.
+tracert
+
+13.
+route print
